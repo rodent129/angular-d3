@@ -213,6 +213,22 @@ export class DataChangesLineChartComponent implements OnInit {
       .style('stroke', (d: any, i: number) => d.color)
       .style('stroke-width', '2');
 
+
+    // Add the data label
+    lineGroup.selectAll('text')
+      .data((d: any) =>  {
+        //  console.log('data label:', d);
+        return d.data;
+      })
+      .join('text')
+      .attr('class', 'data-label')
+      .text((d: any) => d.count > 0 ? d.count : '')
+      .attr('x', (d: any) => this.xScale(this.getXValue(d)))
+      .attr('y', (d: any) => this.yScale(d.count) - 7)
+      .attr('text-anchor', 'middle')
+      .style('font-size', 10);
+
+
     const tooltip = d3.select('#tooltip');
 
     // Draw scatter plot
@@ -246,19 +262,6 @@ export class DataChangesLineChartComponent implements OnInit {
         tooltip
           .style('visibility', 'hidden');
       });
-
-
-    // Add the data label
-    lineGroup.selectAll('text')
-      .data((d: any) =>  {
-        //  console.log('data label:', d);
-        return d.data;
-      })
-      .join('text')
-      .text((d: any) => d.count)
-      .attr('x', (d: any) => this.xScale(this.getXValue(d)))
-      .attr('y', (d: any) => this.yScale(d.count) - 7)
-      .attr('text-anchor', 'middle');
   }
 
   getXValue(d: any) {
@@ -299,7 +302,7 @@ export class DataChangesLineChartComponent implements OnInit {
         console.log('date month:', date.getMonth());
         this.xAxisData = new XAxisData(new Date(date.getFullYear(), 1).getTime(),
           new Date(date.getFullYear(), 2, 0).getTime(), xAxisType.dayInMonthType);
-        this.yAxisData = new YAxisData(0, 20, 5);
+        this.yAxisData = new YAxisData(0, 21, 7);
         break;
     }
 

@@ -9,6 +9,7 @@ import { ScatterPlotComponent } from './scatter-plot/scatter-plot.component';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { AdvancedLineChartComponent } from './advanced-line-chart/advanced-line-chart.component';
 import { DataChangesLineChartComponent } from './data-changes-line-chart/data-changes-line-chart.component';
+import { ScrollableLineChartComponent } from './scrollable-line-chart/scrollable-line-chart.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { DataChangesLineChartComponent } from './data-changes-line-chart/data-ch
     ScatterPlotComponent,
     LineChartComponent,
     AdvancedLineChartComponent,
-    DataChangesLineChartComponent
+    DataChangesLineChartComponent,
+    ScrollableLineChartComponent
   ],
   imports: [
     BrowserModule,

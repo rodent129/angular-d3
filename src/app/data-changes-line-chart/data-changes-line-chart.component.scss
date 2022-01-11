@@ -8,6 +8,10 @@ app-data-changes-line-chart {
   }
 
   circle:hover {
-    cursor: pointer;
+    cursor: pointer !important;
+  }
+
+  .data-label:hover {
+    cursor: default;
   }
 }
