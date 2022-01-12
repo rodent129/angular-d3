@@ -39,31 +39,21 @@ class YAxisData {
 }
 
 @Component({
-  selector: 'app-scrollable-line-chart',
-  templateUrl: './scrollable-line-chart.component.html',
-  styleUrls: ['./scrollable-line-chart.component.scss'],
+  selector: 'app-scrollable-line-chart2',
+  templateUrl: './scrollable-line-chart2.component.html',
+  styleUrls: ['./scrollable-line-chart2.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class ScrollableLineChartComponent implements OnInit {
+export class ScrollableLineChart2Component implements OnInit {
 
   private colorList = ['#FDBF6F', '#FB9A99', '#B2DF8A', '#A6CEE3', '#CAB2D6', '#FFFF99', '#9FA8DA'];
 
+  private margin = 100;
   private width = 750;
   private height = 600;
-  private margin = 100;
-  private leftPanelWidth = 50;
-  private rightBottomPanelWidth = this.width - this.leftPanelWidth;
-  private rightBottomPanelHeight = 50;
-  private rightUpperPanelWidth = this.width - this.leftPanelWidth;
-  private rightUpperPanelHeight = this.height - this.rightBottomPanelHeight;
-  private xyAxisGap = 0;
 
-
-  private wholeContainer: any;
-  private svgFloat: any;
-  private svgBottom: any;
-  private scrollableContainer: any;
-  private svgScrollable: any;
+  private svg: any;
+  private chart: any;
   private xScale: any;
   private yScale: any;
 
@@ -71,14 +61,12 @@ export class ScrollableLineChartComponent implements OnInit {
   private xAxisData: XAxisData;
   private yAxisData: YAxisData;
 
+  private xyAxisGap = 10;
 
   constructor() {
-    this.currentDataSet = DataConst.dayInMonthData1;
-    const date = new Date();
-    console.log('date month:', date.getMonth());
-    this.xAxisData = new XAxisData(new Date(date.getFullYear(), 1).getTime(),
-      new Date(date.getFullYear(), 2, 0).getTime(), xAxisType.dayInMonthType);
-    this.yAxisData = new YAxisData(0, 21, 6);
+    this.currentDataSet = DataConst.every15MinData1;
+    this.xAxisData = new XAxisData(1641456900000, 1641459600000, xAxisType.every15MinType);
+    this.yAxisData = new YAxisData(0, 12, 6);
   }
 
   ngOnInit(): void {
@@ -88,72 +76,47 @@ export class ScrollableLineChartComponent implements OnInit {
   }
 
   createSvg() {
-    this.wholeContainer = d3.select('figure#scrollable-line-chart')
-      .append('div')
-      .attr('width', this.width)
-      .attr('height', this.height)
-      .attr('class', 'container');
-
-    this.svgFloat = this.wholeContainer
+    this.svg = d3.select('figure#scrollable-line-chart2')
       .append('svg')
       .attr('width', this.width)
-      .attr('height', this.height)
-      .attr('class', 'y-container');
+      .attr('height', this.height);
+
+    // Add the x-axis title
+    this.svg.append('text')
+      .attr('class', 'x-axis-title')
+      .attr('x', this.width / 2)
+      .attr('y', this.height - 50)
+      .attr('text-anchor', 'middle')
+      .style('font-size', 12);
 
     // Add the y-axis title
-    this.svgFloat.append('text')
+    this.svg.append('text')
       .attr('class', 'y-axis-title')
       .attr('transform', 'translate(' + 30 + ',' + ((this.height) / 2) + ') rotate(-90)' )
       .attr('text-anchor', 'middle')
       .style('font-size', 12);
 
-    // Add the y-axis group.
-    this.svgFloat.append('g')
-      .attr('transform', 'translate(' + this.margin + ',' + this.margin + ')')
-      .attr('class', 'y-axis');
-
-    const rightContainer = this.wholeContainer.append('div')
-      .attr('class', 'right-container')
-      .style('transform', 'translate(' + this.leftPanelWidth + 'px, ' + 0 + 'px)');
-
-    this.scrollableContainer = rightContainer.append('div')
-      .attr('class', 'scrollable-container')
-      .style('height', this.rightUpperPanelHeight + 'px')
-      .style('width', this.rightUpperPanelWidth + 'px');
-
-    this.svgScrollable = this.scrollableContainer.append('svg')
-      .attr('width', this.rightUpperPanelWidth)
-      .attr('height', this.rightUpperPanelHeight)
-      .style('display', 'block')
-      .attr('x', -5)
+    // Add the chart group.
+    this.chart = this.svg.append('g')
+      .attr('transform', 'translate(' + this.margin + ',' + this.margin + ')');
 
     // Add the x-axis group.
-    this.svgScrollable.append('g')
+    this.chart.append('g')
       .attr('class', 'x-axis')
-      .attr('transform', 'translate(' + (this.xyAxisGap + this.leftPanelWidth) + ',' + (this.rightUpperPanelHeight - this.rightBottomPanelHeight) + ')');
+      .attr('transform', 'translate(' + this.xyAxisGap + ',' + (this.height - (this.margin * 2)) + ')');
 
-    this.svgBottom = rightContainer
-      .append('svg')
-      .attr('width', this.rightBottomPanelWidth)
-      .attr('height', this.rightBottomPanelHeight);
-
-    // Add the x-axis title
-    this.svgBottom.append('text')
-      .attr('class', 'x-axis-title')
-      .attr('x', this.rightBottomPanelWidth / 2)
-      .attr('y', this.rightBottomPanelHeight - 20)
-      .attr('text-anchor', 'middle')
-      .style('font-size', 12);
-
+    // Add the y-axis group.
+    this.chart.append('g')
+      .attr('class', 'y-axis');
   }
 
   updateXYAxisTitles(xTitle: string, yTitle: string) {
     // Set the x-axis title
-    this.svgBottom.select('.x-axis-title')
+    this.svg.select('.x-axis-title')
       .text(xTitle);
 
     // Add the y-axis title
-    this.svgFloat.select('.y-axis-title')
+    this.svg.select('.y-axis-title')
       .text(yTitle);
   }
 
@@ -169,37 +132,33 @@ export class ScrollableLineChartComponent implements OnInit {
     // Set the x-axis scale.
     // scaleTime is local time. scaleUtc is utc time.
     this.xScale = d3.scaleTime()
-      .domain([xAxisData.minTimestampMillis ,xAxisData.maxTimestampMillis]);
+      .domain([xAxisData.minTimestampMillis ,xAxisData.maxTimestampMillis])
+      .range([0, this.width - (this.margin * 2)]);
 
     let axisBottom: any = d3.axisBottom(this.xScale);
 
     if (xAxisData?.type) {
       switch (xAxisData.type) {
         case xAxisType.every15MinType:
-          this.xScale.range([0, this.rightUpperPanelWidth])
           axisBottom = d3.axisBottom(this.xScale)
             .ticks(d3.timeMinute.every(15))
             .tickSize(0)
             .tickFormat((domainValue:any) => {
-                const endTime = domainValue.getTime();
-                const startTime = endTime - (15 * 60 * 1000);
-                //  console.log('domainValue', domainValue.getTime());
-                const format = d3.timeFormat('%H:%M');
-                return format(new Date(startTime)) + ' - ' + format(new Date(endTime));
-              }
-            );
+              const endTime = domainValue.getTime();
+              const startTime = endTime - (15 * 60 * 1000);
+              //  console.log('domainValue', domainValue.getTime());
+              const format = d3.timeFormat('%H:%M');
+              return format(new Date(startTime)) + ' - ' + format(new Date(endTime));
+            }
+          );
           break;
         case xAxisType.dayInWeekType:
-          this.xScale.range([0, this.width - this.rightUpperPanelWidth])
           axisBottom = d3.axisBottom(this.xScale)
             .ticks(d3.timeDay.every(1))
             .tickSize(0)
             .tickFormat((domainValue:any) => d3.timeFormat('%A')(domainValue))
           break;
         case xAxisType.dayInMonthType:
-          const width = 28 * 50;
-          this.svgScrollable.attr('width', width + 20);
-          this.xScale.range([0, width - (this.leftPanelWidth + this.xyAxisGap)]);
           axisBottom = d3.axisBottom(this.xScale)
             .ticks(d3.timeDay.every(1))
             .tickSize(0)
@@ -210,37 +169,35 @@ export class ScrollableLineChartComponent implements OnInit {
 
 
     // Draw the x-axis
-    this.svgScrollable.select('.x-axis')
+    this.chart.select('.x-axis')
       .call(axisBottom)
       .call((g: any) => g.select('.domain').attr('stroke', '#ddd'))
-      .call((g: any) => g.selectAll('.tick text').attr('fill', '#000').attr('y', 10).attr('text-anchor', 'start'));
+      .call((g: any) => g.selectAll('.tick text').attr('fill', '#000').attr('y', 10));
   }
 
   drawYAxis(yAxisData: YAxisData) {
     // Set the y-axis scale.
     this.yScale = d3.scaleLinear()
       .domain([yAxisData.min, yAxisData.max])
-      .nice(yAxisData.count)
       .range([this.height - (this.margin * 2), 0]);
 
     // Draw the y-axis
-    this.svgFloat.select('.y-axis')
+    this.chart.select('.y-axis')
       .call(d3.axisLeft(this.yScale).ticks(yAxisData.count))
       .call((g: any) => g.select('.domain').remove())
       .call((g: any) => g.selectAll('.tick line')
         .attr('x1', this.xyAxisGap)
-        .attr('x2', this.rightUpperPanelWidth + this.xyAxisGap)
-        .attr('stroke', '#ddd')
-      )
+        .attr('x2', this.width - (this.margin * 2) + this.xyAxisGap)
+        .attr('stroke', '#ddd'))
       .call((g: any) => g.selectAll('.tick text').attr('fill', '#000'));
   }
 
   drawLines(newData: any) {
-    const lineGroup = this.svgScrollable.selectAll('.line-group')
+    const lineGroup = this.chart.selectAll('.line-group')
       .data(newData)
       .join('g')
       .attr('class', 'line-group')
-      .attr('transform', 'translate(' + (this.xyAxisGap + this.leftPanelWidth) + ',' + this.margin + ')')
+      .attr('transform', 'translate(' + this.xyAxisGap + ', 0)')
 
     const line = d3.line()
       .defined( (d: any) => !isNaN(d.count))
@@ -294,7 +251,7 @@ export class ScrollableLineChartComponent implements OnInit {
         tooltip.select('#line2').text(d.data.count);
 
         const tooltipHeight = parseFloat(tooltip.style('height'));
-        //     console.log('tooltip height:' + tooltipHeight);
+   //     console.log('tooltip height:' + tooltipHeight);
 
         tooltip
           .style('visibility', 'visible')
@@ -320,5 +277,39 @@ export class ScrollableLineChartComponent implements OnInit {
     }
     return d.endTime;
   }
+
+
+  dataSetChanged(id: number) {
+    switch(id) {
+      case 1:
+        this.currentDataSet = DataConst.every15MinData1;
+        this.xAxisData = new XAxisData(1641456900000, 1641459600000, xAxisType.every15MinType);
+        this.yAxisData = new YAxisData(0, 12, 6);
+        break;
+      case 2:
+        this.currentDataSet = DataConst.every15MinData2;
+        this.xAxisData = new XAxisData(1641460500000, 1641463200000, xAxisType.every15MinType);
+        this.yAxisData = new YAxisData(0, 10, 5);
+        break;
+      case 3:
+        this.currentDataSet = DataConst.dayInWeekData1;
+        this.xAxisData = new XAxisData(1641139200000, 1641657600000, xAxisType.dayInWeekType);
+        this.yAxisData = new YAxisData(0, 25, 5)
+        break;
+      case 4:
+        this.currentDataSet = DataConst.dayInMonthData1;
+        const date = new Date();
+        console.log('date month:', date.getMonth());
+        this.xAxisData = new XAxisData(new Date(date.getFullYear(), 1).getTime(),
+          new Date(date.getFullYear(), 2, 0).getTime(), xAxisType.dayInMonthType);
+        this.yAxisData = new YAxisData(0, 21, 7);
+        break;
+    }
+
+    this.drawChart();
+
+  }
+
+
 
 }

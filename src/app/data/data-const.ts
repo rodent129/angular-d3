@@ -26,7 +26,7 @@ export class DataConst {
       data: [
         { startTime: 1641459600001, endTime: 1641460500000, count: 5},
         { startTime: 1641460500001, endTime: 1641461400000, count: 6},
-   //     { startTime: 1641461400001, endTime: 1641462300000, count: 10},
+        { startTime: 1641461400001, endTime: 1641462300000, count: 3},
         { startTime: 1641462300001, endTime: 1641463200000, count: 2}
       ]
     },
@@ -35,7 +35,7 @@ export class DataConst {
       data: [
         { startTime: 1641459600001, endTime: 1641460500000, count: 3},
         { startTime: 1641460500001, endTime: 1641461400000, count: 8},
-    //    { startTime: 1641461400001, endTime: 1641462300000, count: 5},
+        { startTime: 1641461400001, endTime: 1641462300000, count: 2},
         { startTime: 1641462300001, endTime: 1641463200000, count: 0}
       ]
     }

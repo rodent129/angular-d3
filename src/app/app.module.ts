@@ -10,6 +10,7 @@ import { LineChartComponent } from './line-chart/line-chart.component';
 import { AdvancedLineChartComponent } from './advanced-line-chart/advanced-line-chart.component';
 import { DataChangesLineChartComponent } from './data-changes-line-chart/data-changes-line-chart.component';
 import { ScrollableLineChartComponent } from './scrollable-line-chart/scrollable-line-chart.component';
+import { ScrollableLineChart2Component } from "./scrollable-line-chart2/scrollable-line-chart2.component";
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { ScrollableLineChartComponent } from './scrollable-line-chart/scrollable
     LineChartComponent,
     AdvancedLineChartComponent,
     DataChangesLineChartComponent,
-    ScrollableLineChartComponent
+    ScrollableLineChartComponent,
+    ScrollableLineChart2Component
   ],
   imports: [
     BrowserModule,

@@ -1,21 +1,4 @@
-app-scrollable-line-chart {
-  .container {
-    overflow: hidden;
-  }
-
-  .y-container {
-    position: absolute;
-    z-index: 0;
-  }
-
-  .right-container {
-  }
-
-  .scrollable-container {
-    overflow-x: scroll;
-    overflow-y: hidden;
-  }
-
+app-scrollable-line-chart2 {
   .tooltip {
     position: absolute;
     width: 100px;
