@@ -61,25 +61,48 @@ export class ScrollableLineChart2Component implements OnInit {
   private xAxisData: XAxisData;
   private yAxisData: YAxisData;
 
-  private xyAxisGap = 10;
+  private xyAxisGap = 0;
+
+  private zoom: any;
+
+  private clip: any;
 
   constructor() {
-    this.currentDataSet = DataConst.every15MinData1;
-    this.xAxisData = new XAxisData(1641456900000, 1641459600000, xAxisType.every15MinType);
-    this.yAxisData = new YAxisData(0, 12, 6);
+    this.currentDataSet = DataConst.dayInMonthData1;
+    const date = new Date();
+    this.xAxisData = new XAxisData(new Date(date.getFullYear(), 1).getTime(),
+      new Date(date.getFullYear(), 2, 0).getTime(), xAxisType.dayInMonthType);
+    this.yAxisData = new YAxisData(0, 20, 5);
   }
 
   ngOnInit(): void {
+    this.zoom = d3.zoom().scaleExtent([1, 1])
+      .translateExtent([[0,0], [28 * 50, this.height]])
+      .on('zoom', this.handleZoom.bind(this));
+
     this.createSvg();
-    this.updateXYAxisTitles('Date Range', 'Agent/Line count');
+    this.updateXYAxisTitles('Date Range', 'Count');
     this.drawChart();
   }
 
   createSvg() {
-    this.svg = d3.select('figure#scrollable-line-chart2')
+    this.svg = d3.select('div#scrollable-line-chart2')
       .append('svg')
       .attr('width', this.width)
-      .attr('height', this.height);
+      .attr('height', this.height)
+      .attr('viewBox', [0, 0, this.width, this.height])
+      .call(this.zoom)
+
+    // this.svg.on('wheel', (event: any) => {
+    //   console.log('wheel event:', event);
+    //   this.svg.call(this.zoom.translateBy, event.deltaX, 0);
+    // })
+
+
+    // this.svg.append('rect')
+    //   .attr('width', this.width)
+    //   .attr('height', this.height)
+    //   .attr('fill', '#84afa3')
 
     // Add the x-axis title
     this.svg.append('text')
@@ -98,16 +121,47 @@ export class ScrollableLineChart2Component implements OnInit {
 
     // Add the chart group.
     this.chart = this.svg.append('g')
-      .attr('transform', 'translate(' + this.margin + ',' + this.margin + ')');
+      .attr('transform', 'translate(' + this.margin + ',' + this.margin + ')')
 
     // Add the x-axis group.
     this.chart.append('g')
       .attr('class', 'x-axis')
       .attr('transform', 'translate(' + this.xyAxisGap + ',' + (this.height - (this.margin * 2)) + ')');
 
+
+    d3.svg('./assets/keyboard_arrow_left_black_24dp.svg').then(data => {
+      this.svg.append('g')
+        .attr('class', 'left-arrow')
+        .attr('transform', 'translate(' +  55 + ',' + (this.height - this.margin ) + ')')
+        .on('click', (event: any, d: any) => {
+          this.svg.call(this.zoom.translateBy, 150, 0);
+        })
+        .node().appendChild(data.documentElement)
+    });
+
+    d3.svg('./assets/keyboard_arrow_right_black_24dp.svg').then(data => {
+      this.svg.append('g')
+        .attr('class', 'right-arrow')
+        .attr('transform', 'translate(' + (this.width - 40) + ',' + (this.height - this.margin) + ')')
+        .on('click', (event: any, d: any) => {
+          this.svg.call(this.zoom.translateBy, -150, 0);
+        })
+        .node().appendChild(data.documentElement)
+    })
+
     // Add the y-axis group.
     this.chart.append('g')
-      .attr('class', 'y-axis');
+      .attr('class', 'y-axis')
+
+
+    // Add a clipPath: everything out of this area won't be drawn.
+    this.clip = this.chart.append("defs").append("clipPath")
+      .attr("id", "clip")
+      .append("rect")
+      .attr("width", this.width - this.margin - 50)
+      .attr("height", this.height - this.margin)
+      .attr("x", 0)
+      .attr("y", 0);
   }
 
   updateXYAxisTitles(xTitle: string, yTitle: string) {
@@ -121,7 +175,7 @@ export class ScrollableLineChart2Component implements OnInit {
   }
 
   drawChart() {
-    this.drawXAxis(this.xAxisData);
+     this.drawXAxis(this.xAxisData);
     this.drawYAxis(this.yAxisData);
     this.drawLines(this.currentDataSet);
   }
@@ -129,17 +183,17 @@ export class ScrollableLineChart2Component implements OnInit {
   drawXAxis(xAxisData: XAxisData) {
     //domain is the input data
     //range is the output data
-    // Set the x-axis scale.
+    // Set the x-axis scale.-45
     // scaleTime is local time. scaleUtc is utc time.
     this.xScale = d3.scaleTime()
-      .domain([xAxisData.minTimestampMillis ,xAxisData.maxTimestampMillis])
-      .range([0, this.width - (this.margin * 2)]);
+      .domain([xAxisData.minTimestampMillis ,xAxisData.maxTimestampMillis]);
 
     let axisBottom: any = d3.axisBottom(this.xScale);
 
     if (xAxisData?.type) {
       switch (xAxisData.type) {
         case xAxisType.every15MinType:
+          this.xScale.range([0, this.width - (this.margin * 2)]);
           axisBottom = d3.axisBottom(this.xScale)
             .ticks(d3.timeMinute.every(15))
             .tickSize(0)
@@ -153,16 +207,20 @@ export class ScrollableLineChart2Component implements OnInit {
           );
           break;
         case xAxisType.dayInWeekType:
+          this.xScale.range([0, this.width - (this.margin * 2)]);
           axisBottom = d3.axisBottom(this.xScale)
             .ticks(d3.timeDay.every(1))
             .tickSize(0)
             .tickFormat((domainValue:any) => d3.timeFormat('%A')(domainValue))
           break;
         case xAxisType.dayInMonthType:
+          this.xScale.domain([xAxisData.minTimestampMillis ,1644767999000])
+          const width = (28 * 50) - (this.margin * 2 + 50);
+          this.xScale.range([5, this.width - (this.margin * 2) + 50]);
           axisBottom = d3.axisBottom(this.xScale)
             .ticks(d3.timeDay.every(1))
             .tickSize(0)
-            .tickFormat((domainValue: any) => d3.timeFormat('%e')(domainValue));
+            .tickFormat((domainValue: any) => 'long-name' + d3.timeFormat('%e')(domainValue));
           break;
       }
     }
@@ -172,7 +230,10 @@ export class ScrollableLineChart2Component implements OnInit {
     this.chart.select('.x-axis')
       .call(axisBottom)
       .call((g: any) => g.select('.domain').attr('stroke', '#ddd'))
-      .call((g: any) => g.selectAll('.tick text').attr('fill', '#000').attr('y', 10));
+      .call((g: any) => g.selectAll('.tick text').attr('fill', '#000')
+        .attr('y', 10)
+        .attr('transform', 'translate(-5, 0) rotate(-30)')
+        .style('text-anchor', 'end'));
   }
 
   drawYAxis(yAxisData: YAxisData) {
@@ -187,7 +248,7 @@ export class ScrollableLineChart2Component implements OnInit {
       .call((g: any) => g.select('.domain').remove())
       .call((g: any) => g.selectAll('.tick line')
         .attr('x1', this.xyAxisGap)
-        .attr('x2', this.width - (this.margin * 2) + this.xyAxisGap)
+        .attr('x2', this.width - this.margin - 50 + this.xyAxisGap)
         .attr('stroke', '#ddd'))
       .call((g: any) => g.selectAll('.tick text').attr('fill', '#000'));
   }
@@ -198,6 +259,7 @@ export class ScrollableLineChart2Component implements OnInit {
       .join('g')
       .attr('class', 'line-group')
       .attr('transform', 'translate(' + this.xyAxisGap + ', 0)')
+      .attr("clip-path", "url(#clip)")
 
     const line = d3.line()
       .defined( (d: any) => !isNaN(d.count))
@@ -215,18 +277,18 @@ export class ScrollableLineChart2Component implements OnInit {
 
 
     // Add the data label
-    lineGroup.selectAll('text')
-      .data((d: any) =>  {
-        //  console.log('data label:', d);
-        return d.data;
-      })
-      .join('text')
-      .attr('class', 'data-label')
-      .text((d: any) => d.count > 0 ? d.count : '')
-      .attr('x', (d: any) => this.xScale(this.getXValue(d)))
-      .attr('y', (d: any) => this.yScale(d.count) - 7)
-      .attr('text-anchor', 'middle')
-      .style('font-size', 10);
+    // lineGroup.selectAll('text')
+    //   .data((d: any) =>  {
+    //     //  console.log('data label:', d);
+    //     return d.data;
+    //   })
+    //   .join('text')
+    //   .attr('class', 'data-label')
+    //   .text((d: any) => d.count > 0 ? d.count : '')
+    //   .attr('x', (d: any) => this.xScale(this.getXValue(d)))
+    //   .attr('y', (d: any) => this.yScale(d.count) - 7)
+    //   .attr('text-anchor', 'middle')
+    //   .style('font-size', 10);
 
 
     const tooltip = d3.select('#tooltip');
@@ -245,18 +307,20 @@ export class ScrollableLineChart2Component implements OnInit {
       .attr('r', 5)
       .attr('fill', (d: any) => d.color)
       .on('mouseover', (event: any, d: any) => {
+        console.log('event:', event);
+        const x = event.pageX;
+        const y = event.pageY;
         const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
-        // console.log('bbox', clientRect);
+        console.log('bbox', clientRect);
+        //  console.log('box left, top:', (clientRect.right + 20) + ', ' + (clientRect.top - (tooltipHeight / 2) + (clientRect.width / 2)))
         tooltip.select('#line1').text(d.name);
         tooltip.select('#line2').text(d.data.count);
-
         const tooltipHeight = parseFloat(tooltip.style('height'));
    //     console.log('tooltip height:' + tooltipHeight);
-
         tooltip
           .style('visibility', 'visible')
-          .style('left', (clientRect.right + 20) + 'px')
-          .style('top',  (clientRect.top - (tooltipHeight / 2) + (clientRect.width / 2)) + 'px');
+          .style('left', (clientRect.right + 10) + 'px')
+          .style('top',  (y - (tooltipHeight / 2)) + 'px');
       })
       .on('mouseout', (event: any, d: any) => {
         tooltip
@@ -278,38 +342,44 @@ export class ScrollableLineChart2Component implements OnInit {
     return d.endTime;
   }
 
+  handleZoom(e: any) {
+    // console.log('handleZoom', e);
+    const currentTransform = e.transform;
+    console.log('currentTransform:', currentTransform);
 
-  dataSetChanged(id: number) {
-    switch(id) {
-      case 1:
-        this.currentDataSet = DataConst.every15MinData1;
-        this.xAxisData = new XAxisData(1641456900000, 1641459600000, xAxisType.every15MinType);
-        this.yAxisData = new YAxisData(0, 12, 6);
-        break;
-      case 2:
-        this.currentDataSet = DataConst.every15MinData2;
-        this.xAxisData = new XAxisData(1641460500000, 1641463200000, xAxisType.every15MinType);
-        this.yAxisData = new YAxisData(0, 10, 5);
-        break;
-      case 3:
-        this.currentDataSet = DataConst.dayInWeekData1;
-        this.xAxisData = new XAxisData(1641139200000, 1641657600000, xAxisType.dayInWeekType);
-        this.yAxisData = new YAxisData(0, 25, 5)
-        break;
-      case 4:
-        this.currentDataSet = DataConst.dayInMonthData1;
-        const date = new Date();
-        console.log('date month:', date.getMonth());
-        this.xAxisData = new XAxisData(new Date(date.getFullYear(), 1).getTime(),
-          new Date(date.getFullYear(), 2, 0).getTime(), xAxisType.dayInMonthType);
-        this.yAxisData = new YAxisData(0, 21, 7);
-        break;
+    if (this.chart) {
+      this.reDraw();
     }
-
-    this.drawChart();
-
+    else {
+      console.log('no chart access');
+    }
   }
 
+  reDraw() {
+    let newX = d3.zoomTransform(this.svg.node()).rescaleX(this.xScale);
+    // console.log('reDraw: ', newX);
+    let axisBottom = d3.axisBottom(newX)
+      .ticks(d3.timeDay.every(1))
+      .tickSize(0)
+      .tickFormat((domainValue: any) => 'long-name' + d3.timeFormat('%e')(domainValue));
+    this.chart.select('.x-axis')
+      .call(axisBottom)
+      .call((g: any) => g.select('.domain').attr('stroke', '#ddd'))
+      .call((g: any) => g.selectAll('.tick text').attr('fill', '#000').attr('y', 10)
+        .attr('transform', 'translate(-10, 0) rotate(-30)')
+        .style('text-anchor', 'end'));
 
+    const line = d3.line()
+      .defined( (d: any) => !isNaN(d.count))
+      .x((d: any) => newX(this.getXValue(d)))
+      .y((d: any) => this.yScale(d.count));
+    const lineGroup = this.chart.selectAll('.line-group')
 
+    lineGroup.selectAll('.line')
+      .attr('d', (d: any) => line(d.data));
+
+    lineGroup.selectAll('circle')
+      .attr('cx', (d: any, i: number) => newX(this.getXValue(d.data)))
+      .attr('cy', (d: any, i: number) => this.yScale(d.data.count))
+  }
 }

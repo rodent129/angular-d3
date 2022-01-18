@@ -128,8 +128,8 @@ export class AdvancedLineChartComponent implements OnInit {
       .attr('r', 5)
       .attr('fill', (d: any) => d.color)
       .on('mouseover', (event: any, d: any) => {
-        const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
-        console.log('bbox', clientRect);
+        // const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
+        // console.log('bbox', clientRect);
          tooltip.select('.line1').text(d.data.Framework);
          tooltip.select('#line2').text(d.data.Stars);
 
@@ -139,8 +139,8 @@ export class AdvancedLineChartComponent implements OnInit {
        // tooltip.transition().duration(20)
         tooltip
           .style('visibility', 'visible')
-          .style('left', (clientRect.right + 20) + 'px')
-          .style('top',  (clientRect.top - (tooltipHeight / 2) + (clientRect.width / 2)) + 'px');
+          .style('left', (event.pageX + 20) + 'px')
+          .style('top',  (event.pageY - (tooltipHeight / 2)) + 'px');
       })
       .on('mouseout', (event: any, d: any) => {
        // tooltip.transition().duration(0)

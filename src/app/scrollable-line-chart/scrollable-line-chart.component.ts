@@ -124,6 +124,7 @@ export class ScrollableLineChartComponent implements OnInit {
     this.svgScrollable = this.scrollableContainer.append('svg')
       .attr('width', this.rightUpperPanelWidth)
       .attr('height', this.rightUpperPanelHeight)
+      .attr('class', 'rightUpper')
       .style('display', 'block')
       .attr('x', -5)
 
@@ -288,7 +289,7 @@ export class ScrollableLineChartComponent implements OnInit {
       .attr('r', 5)
       .attr('fill', (d: any) => d.color)
       .on('mouseover', (event: any, d: any) => {
-        const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
+        //const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
         // console.log('bbox', clientRect);
         tooltip.select('#line1').text(d.name);
         tooltip.select('#line2').text(d.data.count);
@@ -296,10 +297,12 @@ export class ScrollableLineChartComponent implements OnInit {
         const tooltipHeight = parseFloat(tooltip.style('height'));
         //     console.log('tooltip height:' + tooltipHeight);
 
+        const x = event.pageX;
+        const y = event.pageY;
         tooltip
           .style('visibility', 'visible')
-          .style('left', (clientRect.right + 20) + 'px')
-          .style('top',  (clientRect.top - (tooltipHeight / 2) + (clientRect.width / 2)) + 'px');
+          .style('left', (x + 20) + 'px')
+          .style('top',  (y - (tooltipHeight / 2)) + 'px');
       })
       .on('mouseout', (event: any, d: any) => {
         tooltip

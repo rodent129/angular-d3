@@ -36,6 +36,12 @@ export class BarComponent implements OnInit {
       .attr('height', this.height + (this.margin * 2))
       .append('g')
       .attr('transform', 'translate(' + this.margin + ',' + this.margin + ')')
+
+
+    this.svg.append('rect')
+      .attr('width', this.width +  (this.margin * 2))
+      .attr('height', this.height + (this.margin * 2))
+      .attr('fill', '#84afa3')
   };
 
   private drawBars(data: any[]) {

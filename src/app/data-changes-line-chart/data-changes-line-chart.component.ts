@@ -81,6 +81,11 @@ export class DataChangesLineChartComponent implements OnInit {
       .attr('width', this.width)
       .attr('height', this.height);
 
+    this.svg.append('rect')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .attr('fill', '#84afa3')
+
     // Add the x-axis title
     this.svg.append('text')
       .attr('class', 'x-axis-title')
@@ -245,7 +250,7 @@ export class DataChangesLineChartComponent implements OnInit {
       .attr('r', 5)
       .attr('fill', (d: any) => d.color)
       .on('mouseover', (event: any, d: any) => {
-        const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
+        // const clientRect = d3.select(event.currentTarget).node().getBoundingClientRect();
         // console.log('bbox', clientRect);
         tooltip.select('#line1').text(d.name);
         tooltip.select('#line2').text(d.data.count);
@@ -253,10 +258,12 @@ export class DataChangesLineChartComponent implements OnInit {
         const tooltipHeight = parseFloat(tooltip.style('height'));
    //     console.log('tooltip height:' + tooltipHeight);
 
+        const x = event.pageX;
+        const y = event.pageY;
         tooltip
           .style('visibility', 'visible')
-          .style('left', (clientRect.right + 20) + 'px')
-          .style('top',  (clientRect.top - (tooltipHeight / 2) + (clientRect.width / 2)) + 'px');
+          .style('left', (x + 20) + 'px')
+          .style('top',  (y - (tooltipHeight / 2)) + 'px');
       })
       .on('mouseout', (event: any, d: any) => {
         tooltip

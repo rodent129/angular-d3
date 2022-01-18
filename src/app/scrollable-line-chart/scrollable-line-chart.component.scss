@@ -16,6 +16,10 @@ app-scrollable-line-chart {
     overflow-y: hidden;
   }
 
+  svg.rightUpper {
+  //  position: absolute;
+  }
+
   .tooltip {
     position: absolute;
     width: 100px;
